@@ -15,7 +15,7 @@
 		"php" : ">=5.3.3",
 		"jms/serializer-bundle" : "*",
 		"jms/di-extra-bundle" : "~1.3",
-		"xima-media/core-bundle" : "dev-master"
+		"xima-media/core-bundle" : "*"
 	},
 	"repositories" : [{
 			"type" : "vcs",
