@@ -1,0 +1,35 @@
+{
+	"name" : "xima-media/restapi-bundle",
+	"description" : "The Xima REST-API Bundle",
+	"type" : "symfony-bundle",
+	"authors" : [{
+			"name" : "Wolfram Eberius",
+			"email" : "woe@xima.de"
+		}
+	],
+	"keywords" : [
+		"rest api json serialize"
+	],
+	"license" : "MIT",
+	"require" : {
+		"php" : ">=5.3.3",
+		"jms/serializer-bundle" : "*",
+		"jms/di-extra-bundle" : "~1.3",
+		"xima-media/core-bundle" : "dev-master"
+	},
+	"repositories" : [{
+			"type" : "vcs",
+			"url" : "git@git.xima.de:webs-sf2-xima-core-bundle.git"
+		}
+	],
+	"autoload" : {
+		"psr-4" : {
+			"Xima\\RestApiBundle\\" : ""
+		}
+	},
+	"extra" : {
+		"branch-alias" : {
+			"dev-master" : "v0.0.2"
+		}
+	}
+}
