@@ -14,8 +14,9 @@ use Symfony\Component\Security\Core\SecurityContextInterface;
 use JMS\Serializer\SerializerBuilder;
 use Xima\CoreBundle\Model\InitializableControllerInterface;
 use JMS\Serializer\SerializationContext;
+use Xima\RestApiBundle\Security\ApiKeyAuthenticator;
 
-class ApiController extends Controller implements InitializableControllerInterface 
+class ApiController extends Controller implements InitializableControllerInterface
 {
     protected $version = '0.0.2';
     protected $defaultLimit = 50;
@@ -24,25 +25,24 @@ class ApiController extends Controller implements InitializableControllerInterfa
     protected $result = array();
     protected $metadata = array();
     protected $params = array();
-    
+
     protected $request;
 
-    public function initialize(Request $request, SecurityContextInterface $security_context) {
+    public function initialize(Request $request, SecurityContextInterface $security_context)
+    {
 
         $this->request = $request;
-        $this->params = $this -> request -> query -> all();
+        $this->params = $this->request->query->all();
 
         //set default or queried limit
-        $this->params['limit'] = $this -> defaultLimit;
-        if ($this->request->get('limit') && $this->request->get('limit') < $this -> defaultLimit)
-        {
+        $this->params['limit'] = $this->defaultLimit;
+        if ($this->request->get('limit') && $this->request->get('limit') < $this->defaultLimit) {
             $this->params['limit'] = $this->request->get('limit');
         }
-        
+
         //set default or queried language
-        $this->params['lang'] = $this -> defaultLang;
-        if ($this->request->get('lang')) 
-        {
+        $this->params['lang'] = $this->defaultLang;
+        if ($this->request->get('lang')) {
             switch ($this->request->get('lang')) {
                 case 'cs' :
                     $this->params['lang'] = 'cz';
@@ -52,7 +52,7 @@ class ApiController extends Controller implements InitializableControllerInterfa
                     break;
             }
         }
-        
+
         //set request locale
         switch ($this->params['lang']) {
             case 'en':
@@ -64,47 +64,56 @@ class ApiController extends Controller implements InitializableControllerInterfa
         }
     }
 
-    protected function success(SerializationContext $context = null) {
-        $this -> metadata['count'] = count($this -> result);
-        $this -> metadata['parameters'] = $this -> request -> query -> all();
-        
-        if (isset($this -> params['debug']) && $this -> params['debug']) {
-            $this -> metadata['appliedParameters'] = $this->params;
+    protected function success(SerializationContext $context = null)
+    {
+        $this->metadata['parameters'] = $this->request->query->all();
+        //do not return the api key
+        unset($this->metadata['parameters'][ApiKeyAuthenticator::PARAMETER_NAME]);
+        unset($this->params[ApiKeyAuthenticator::PARAMETER_NAME]);
+
+        if (isset($this->params['debug']) && $this->params['debug']) {
+            $this->metadata['appliedParameters'] = $this->params;
         } else {
-            unset($this -> metadata['lastExecutedQuery']);
+            unset($this->metadata['lastExecutedQuery']);
         }
 
-        $serializer = SerializerBuilder::create()
-                        ->setPropertyNamingStrategy(new \JMS\Serializer\Naming\IdenticalPropertyNamingStrategy())
-                        ->build();
+        if (is_array($this->result)) {
+            $serializer = SerializerBuilder::create()
+                ->setPropertyNamingStrategy(new \JMS\Serializer\Naming\IdenticalPropertyNamingStrategy())
+                ->build();
+            $this->result = $serializer->serialize($this->result, 'json');
+            $this->metadata['count'] = count($this->result);
+        }
+
+        $this->result = json_decode($this->result);
 
         //object gets serialized first to fullfill the serialization annotations, then decoded and again encoded by the JsonResponse
         $data = array(
             'status' => 'OK',
-            'metadata' => $this -> metadata,
-            'result' => json_decode($serializer -> serialize($this -> result, 'json', $context))
+            'metadata' => $this->metadata,
+            'result' => $this->result
         );
 
-        if (($this->request->get('indent') && $this->request->get('indent') == true) || (isset($this -> params['debug']) && $this -> params['debug'])) {
+        if (($this->request->get('indent') && $this->request->get('indent') == true) || (isset($this->params['debug']) && $this->params['debug'])) {
 
             $content = '<pre>' . print_r($data, true) . '</pre>';
 
             $response = new Response();
-            $response -> setContent($content);
-            $response -> headers -> set('Content-Type', 'text/html; charset=utf-8');
-        }
-        else {
+            $response->setContent($content);
+            $response->headers->set('Content-Type', 'text/html; charset=utf-8');
+        } else {
             $response = new JsonResponse();
-            $response -> setData($data);
+            $response->setData($data);
         }
 
         return $response;
 
     }
 
-    protected function error($msg = 'Es ist ein Fehler aufgetreten.') {
+    protected function error($msg = 'Es ist ein Fehler aufgetreten.')
+    {
         $response = new JsonResponse();
-        $response -> setData(array('status' => 'ERROR: ' . $msg));
+        $response->setData(array('status' => 'ERROR: ' . $msg));
 
         return $response;
     }
