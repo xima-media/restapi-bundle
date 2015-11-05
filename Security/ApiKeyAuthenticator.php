@@ -1,13 +1,12 @@
 <?php
 namespace Xima\RestApiBundle\Security;
 
+use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\Security\Core\Authentication\SimplePreAuthenticatorInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
-use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Authentication\Token\PreAuthenticatedToken;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
-use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 
 class ApiKeyAuthenticator implements SimplePreAuthenticatorInterface
@@ -16,11 +15,20 @@ class ApiKeyAuthenticator implements SimplePreAuthenticatorInterface
 
     protected $userProvider;
 
-    public function __construct(ApiKeyUserProvider $userProvider)
+    /**
+     * ApiKeyAuthenticator constructor.
+     * @param $userProvider
+     */
+    public function __construct($userProvider)
     {
         $this->userProvider = $userProvider;
     }
-    
+
+    /**
+     * @param \Symfony\Component\HttpFoundation\Request $request
+     * @param $providerKey
+     * @return \Symfony\Component\Security\Core\Authentication\Token\PreAuthenticatedToken
+     */
     public function createToken(Request $request, $providerKey)
     {
         if (!$request->query->has(self::PARAMETER_NAME)) {
@@ -34,6 +42,12 @@ class ApiKeyAuthenticator implements SimplePreAuthenticatorInterface
         );
     }
 
+    /**
+     * @param \Symfony\Component\Security\Core\Authentication\Token\TokenInterface $token
+     * @param \Symfony\Component\Security\Core\User\UserProviderInterface $userProvider
+     * @param $providerKey
+     * @return \Symfony\Component\Security\Core\Authentication\Token\PreAuthenticatedToken
+     */
     public function authenticateToken(TokenInterface $token, UserProviderInterface $userProvider, $providerKey)
     {
         $apiKey = $token->getCredentials();
@@ -41,7 +55,7 @@ class ApiKeyAuthenticator implements SimplePreAuthenticatorInterface
 
         if (!$username)
         {
-            throw new AuthenticationException(
+            throw new Exception(
                 sprintf('API Key "%s" does not exist.', $apiKey)
             );
         }
@@ -56,6 +70,11 @@ class ApiKeyAuthenticator implements SimplePreAuthenticatorInterface
         );
     }
 
+    /**
+     * @param \Symfony\Component\Security\Core\Authentication\Token\TokenInterface $token
+     * @param $providerKey
+     * @return bool
+     */
     public function supportsToken(TokenInterface $token, $providerKey)
     {
         return $token instanceof PreAuthenticatedToken && $token->getProviderKey() === $providerKey;

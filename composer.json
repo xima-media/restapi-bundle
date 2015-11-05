@@ -5,6 +5,10 @@
 	"authors" : [{
 			"name" : "Wolfram Eberius",
 			"email" : "woe@xima.de"
+		},
+		{
+			"name" : "Steve Lenz",
+			"email" : "steve.lenz@xima.de"
 		}
 	],
 	"keywords" : [
