@@ -54,12 +54,11 @@ doctrine:
                     
 parameters:
     api_key_user_provider.class: Xima\RestApiBundle\Security\ApiKeyUserProvider
-    api_key_user_provider.key: "%api_key%"
     
 services:
     api_key_user_provider:
         class: "%api_key_user_provider.class%"
-        arguments: ["%api_key_user_provider.key%", @doctrine.orm.default_entity_manager]
+        arguments: [@doctrine.orm.default_entity_manager]
     api_key_authenticator:
         class:     Xima\RestApiBundle\Security\ApiKeyAuthenticator
         arguments: [@api_key_user_provider]
