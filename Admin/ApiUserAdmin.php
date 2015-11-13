@@ -7,6 +7,7 @@ use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Route\RouteCollection;
 use Sonata\AdminBundle\Show\ShowMapper;
+use Xima\RestApiBundle\Entity\User\ApiUser;
 use Xima\RestApiBundle\Helper\Utility;
 
 /**
@@ -97,6 +98,16 @@ class ApiUserAdmin extends Admin
         $formMapper
             ->add('isActive')
             ->add('username')
+            ->add('roles', 'choice', array(
+                'label' => 'Rollen',
+                'expanded' => true,
+                'multiple' => true,
+                'required' => false,
+                'choices' => array(
+                    ApiUser::ROLE_XIMA_REST_API_READ => 'Lesen',
+                    ApiUser::ROLE_XIMA_REST_API_WRITE => 'Schreiben'
+                ),
+            ))
             ->add('email')
             ->add('website')
             ->add('comment');

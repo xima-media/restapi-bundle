@@ -23,16 +23,19 @@ class ApiUser implements UserInterface
 
     const ROLE_XIMA_REST_API_READ = 'ROLE_XIMA_REST_API_READ';
     const ROLE_XIMA_REST_API_WRITE = 'ROLE_XIMA_REST_API_WRITE';
+
     /**
      * @ORM\Column(name="roles", type="json", nullable=true)
      */
-    protected $roles;
+    private $roles;
+
     /**
      * @ORM\Id
      * @ORM\Column(name="id", type="integer")
      * @ORM\GeneratedValue(strategy="AUTO")
      */
     private $id;
+
     /**
      * @ORM\Column(name="username", type="string", length=100, nullable=false)
      * @Assert\NotBlank
@@ -42,6 +45,7 @@ class ApiUser implements UserInterface
      * )
      */
     private $username;
+
     /**
      * @ORM\Column(name="email", type="string", length=100, unique=true)
      * @Assert\NotBlank
@@ -51,6 +55,7 @@ class ApiUser implements UserInterface
      * @Assert\Email
      */
     private $email;
+
     /**
      * @ORM\Column(name="api_key", type="string", length=40, nullable=false)
      */
@@ -62,18 +67,22 @@ class ApiUser implements UserInterface
      * )
      * @Assert\Url()
      */
+
     private $website;
     /**
      * @ORM\Column(name="comment", type="text", nullable=true)
      */
+
     private $comment;
     /**
      * @ORM\Column(name="is_active", type="boolean", nullable=true)
      */
+
     private $isActive;
     /**
      * @ORM\Column(name="created_at", type="datetime", nullable=true)
      */
+
     private $createdAt;
 
     /**
@@ -256,9 +265,6 @@ class ApiUser implements UserInterface
     public function addRole($role)
     {
         $role = strtoupper($role);
-        if ($role === static::ROLE_XIMA_REST_API_READ) {
-            return $this;
-        }
 
         if (!in_array($role, $this->roles, true)) {
             $this->roles[] = $role;
@@ -291,12 +297,17 @@ class ApiUser implements UserInterface
      */
     public function getRoles()
     {
-        $roles = $this->roles;
+        return array_unique($this->roles);
+    }
 
-        // we need to make sure to have at least one role
-        $roles[] = static::ROLE_XIMA_REST_API_READ;
+    public function removeRole($role)
+    {
+        if (false !== $key = array_search(strtoupper($role), $this->roles, true)) {
+            unset($this->roles[$key]);
+            $this->roles = array_values($this->roles);
+        }
 
-        return array_unique($roles);
+        return $this;
     }
 
     public function getPassword()
