@@ -76,13 +76,13 @@ class ApiController extends Controller implements InitializableControllerInterfa
         } else {
             unset($this->metadata['lastExecutedQuery']);
         }
-
+        
         if (is_array($this->result)) {
+            $this->metadata['count'] = count($this->result);
             $serializer = SerializerBuilder::create()
                 ->setPropertyNamingStrategy(new \JMS\Serializer\Naming\IdenticalPropertyNamingStrategy())
                 ->build();
             $this->result = $serializer->serialize($this->result, 'json', $context);
-            $this->metadata['count'] = count($this->result);
         }
 
         $this->result = json_decode($this->result);
