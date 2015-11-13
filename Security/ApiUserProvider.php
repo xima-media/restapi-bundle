@@ -15,6 +15,8 @@ class ApiUserProvider implements UserProviderInterface
      */
     private $em;
 
+    private $apiUser;
+
     /**
      * ApiUserProvider constructor.
      *
@@ -32,12 +34,12 @@ class ApiUserProvider implements UserProviderInterface
      */
     public function getUsernameForApiKey($apiKey)
     {
-        $apiUser = $this->em
+        $this->apiUser = $this->em
             ->getRepository('XimaRestApiBundle:User\\ApiUser')
             ->findOneBy(array('key' => $apiKey, 'isActive' => 1));
 
-        if ($apiUser){
-            return $apiUser->getUsername();
+        if ($this->apiUser){
+            return $this->apiUser->getUsername();
         }
 
         return false;
@@ -49,13 +51,7 @@ class ApiUserProvider implements UserProviderInterface
      */
     public function loadUserByUsername($username)
     {
-        return new ApiUser(
-            $username,
-            null,
-            // the roles for the user - you may choose to determine
-            // these dynamically somehow based on the user
-            array('ROLE_USER')
-        );
+        return $this->apiUser;
     }
 
     /**
