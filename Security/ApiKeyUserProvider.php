@@ -15,28 +15,17 @@ class ApiKeyUserProvider implements UserProviderInterface
         $this->apiKey = $apiKey;
     }
     
-    
-    public function getUsernameForApiKey($apiKey)
+    public function loadUserByUsername($apiKey)
     {
-        // Look up the username based on the token in the database, via
-        // an API call, or do something entirely different
-        if ($apiKey == $this->apiKey)
-        {
-            return $apiKey;
+        if ($apiKey === $this->apiKey) {
+            return new User(
+                $apiKey,
+                null,
+                array('ROLE_USER')
+            );
         }
 
         return false;
-    }
-
-    public function loadUserByUsername($username)
-    {
-        return new User(
-            $username,
-            null,
-            // the roles for the user - you may choose to determine
-            // these dynamically somehow based on the user
-            array('ROLE_USER')
-        );
     }
 
     public function refreshUser(UserInterface $user)

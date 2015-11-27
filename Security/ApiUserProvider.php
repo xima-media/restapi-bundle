@@ -15,12 +15,10 @@ class ApiUserProvider implements UserProviderInterface
      */
     private $em;
 
-    private $apiUser;
-
     /**
      * ApiUserProvider constructor.
      *
-     * @param $apiKey
+     * @param EntityManager $entityManager
      * @param \Doctrine\ORM\EntityManager $entityManager
      */
     public function __construct(EntityManager $entityManager)
@@ -32,26 +30,18 @@ class ApiUserProvider implements UserProviderInterface
      * @param $apiKey
      * @return bool
      */
-    public function getUsernameForApiKey($apiKey)
+    public function loadUserByUsername($apiKey)
     {
-        $this->apiUser = $this->em
+        $user = $this->em
             ->getRepository('XimaRestApiBundle:User\\ApiUser')
             ->findOneBy(array('key' => $apiKey, 'isActive' => 1));
 
-        if ($this->apiUser){
-            return $this->apiUser->getUsername();
+        if ($user) {
+            $user->addRole('ROLE_USER');
+            return $user;
         }
 
         return false;
-    }
-
-    /**
-     * @param string $username
-     * @return \Symfony\Component\Security\Core\User\User
-     */
-    public function loadUserByUsername($username)
-    {
-        return $this->apiUser;
     }
 
     /**

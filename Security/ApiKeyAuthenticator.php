@@ -16,12 +16,19 @@ class ApiKeyAuthenticator implements SimplePreAuthenticatorInterface
     protected $userProvider;
 
     /**
+     * @var array $requiredRoles
+     */
+    protected $requiredRoles = array();
+
+    /**
      * ApiKeyAuthenticator constructor.
      * @param $userProvider
+     * @param array $requiredRoles
      */
-    public function __construct($userProvider)
+    public function __construct($userProvider, $requiredRoles = array())
     {
         $this->userProvider = $userProvider;
+        $this->requiredRoles = $requiredRoles;
     }
 
     /**
@@ -32,7 +39,7 @@ class ApiKeyAuthenticator implements SimplePreAuthenticatorInterface
     public function createToken(Request $request, $providerKey)
     {
         if (!$request->query->has(self::PARAMETER_NAME)) {
-            throw new BadCredentialsException('No API key found');
+            throw new BadCredentialsException('No API key set.');
         }
 
         return new PreAuthenticatedToken(
@@ -50,21 +57,31 @@ class ApiKeyAuthenticator implements SimplePreAuthenticatorInterface
      */
     public function authenticateToken(TokenInterface $token, UserProviderInterface $userProvider, $providerKey)
     {
-        $apiKey = $token->getCredentials();
-        $username = $this->userProvider->getUsernameForApiKey($apiKey);
+        $user = $this->userProvider->loadUserByUsername($token->getCredentials());
 
-        if (!$username)
-        {
+        /**
+         * check if api key exists
+         */
+        if (!$user) {
             throw new Exception(
-                sprintf('API Key "%s" does not exist.', $apiKey)
+                sprintf('Invalid API Key.')
             );
         }
 
-        $user = $this->userProvider->loadUserByUsername($apiKey);
+        /**
+         * check if api user has required roles, if any
+         */
+        foreach ($this->requiredRoles as $requiredRole) {
+            if (!$user->hasRole($requiredRole)) {
+                throw new Exception(
+                    sprintf('API Key does not have sufficient rights.')
+                );
+            }
+        }
 
         return new PreAuthenticatedToken(
             $user,
-            $apiKey,
+            $token->getCredentials(),
             $providerKey,
             $user->getRoles()
         );

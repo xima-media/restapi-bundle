@@ -75,7 +75,7 @@ class ApiUserAdmin extends Admin
     protected function configureListFields(ListMapper $listMapper)
     {
         $listMapper
-            ->add('username')
+            ->addIdentifier('username')
             ->add('isActive')
             ->add('email')
             ->add('updatedAt')
